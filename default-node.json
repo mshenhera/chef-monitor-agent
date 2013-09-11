@@ -1,0 +1,3 @@
+{
+  "run_list": "recipe[chef_client_setup::aws]"
+}
