@@ -16,7 +16,14 @@ apt-get install -y git || {
 }
 
 # Downloa chef-solo configuration.
-sudo git clone https://github.com/mshenhera/ChefSolo.git /etc/chef-solo
+if [[ -d '/etc/chef-solo' ]]; then
+  pushd /etc/chef-solo
+  git fetch 
+  git pull
+  popd
+else
+  git clone https://github.com/mshenhera/ChefSolo.git /etc/chef-solo
+fi
 
 # Setup Chef Client
 chef-solo -c /etc/chef-solo/chef-solo.rb -j /etc/chef-solo/default-node.json || {
