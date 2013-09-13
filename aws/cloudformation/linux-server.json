@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Konycloud Server Stack Template.",
+    "Description": "Server Stack Template.",
 
     "Parameters": {
 
@@ -99,40 +99,6 @@
     },
 
     "Resources": {
-
-        "InstallUser" : {
-            "Type" : "AWS::IAM::User",
-            "Properties" : {
-                "Path": "/",
-                "Policies": [{
-                    "PolicyName": "root",
-                    "PolicyDocument": { "Statement":[{
-                        "Effect":"Allow",
-                        "Action": [
-                            "cloudformation:DescribeStackResource",
-                            "s3:Get",
-                            "ec2:AssociateAddress",
-                            "ec2:DescribeAddresses",
-                            "ec2:DescribeVolumes",
-                            "ec2:AttachVolume"
-                        ],
-                        "Resource":"*"
-                    }, {
-                        "Effect": "Allow",
-                        "Action": [
-                            "s3:Get*",
-                            "s3:List*"
-                        ],
-                        "Resource": [
-                            "arn:aws:s3:::build.storage",
-                            "arn:aws:s3:::build.storage/*",
-                            "arn:aws:s3:::kony-repo/*",
-                            {"Fn::Join": ["", [ "arn:aws:s3:::", { "Ref": "ChefKeysBucket" }, "/*"]]}
-                        ]
-                    }]}
-                }]
-            }
-        },
 
         "IamRole": {
             "Type": "AWS::IAM::Role",
@@ -247,7 +213,7 @@
                     "EXIT_CODE=0\n",
 
                     "# Install Chef\n",
-                    " curl -L https://raw.github.com/mshenhera/ChefSolo/master/scripts/aws-bootstrap.sh | sudo bash || {\n",
+                    " curl -L https://raw.github.com/mshenhera/chef-monitor-agent/master/scripts/aws-bootstrap.sh | sudo bash || {\n",
                     "   echo \"Can't install setup Chef Client due to error above. Exiting.\" > /var/log/bootstrap.log 2>&1\n",
                     "   exit 1\n",
                     "}\n",

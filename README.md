@@ -1,4 +1,4 @@
-ChefSolo
+chef-monitor-client
 ========
 
-Setup Chef Client in AWS environment
+Setup Sensu client to monitor system metrics and push them to Graphite. 
