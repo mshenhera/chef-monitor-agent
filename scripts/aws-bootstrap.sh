@@ -41,8 +41,8 @@ echo "[INFO] Installing Ohai AWS CloudFormation plugin"
 # Your Chef recipes can then reference the metadata as follows:
 #   user => node['cfn']['my_app']['user']
 #   password => node['cfn']['app']['password']
-OHAI_VERSION="`/opt/chef/bin/gem list ohai | grep ohai | awk -F\( '{print $2}' | sed 's/)//'`"
-GEM_BASE_DIR="`/opt/chef/bin/gem list -d ohai | grep "Installed at:" | awk '{print $3}'`"
+OHAI_VERSION="`/opt/chef/embedded/bin/gem list ohai | grep ohai | awk -F\( '{print $2}' | sed 's/)//'`"
+GEM_BASE_DIR="`/opt/chef/embedded/bin/gem list -d ohai | grep "Installed at:" | awk '{print $3}'`"
 CFN_OHAI_PLUGIN="${GEM_BASE_DIR}/gems/ohai-${OHAI_VERSION}/lib/ohai/plugins/cfn.rb"
 wget -O  "$CFN_OHAI_PLUGIN" https://s3.amazonaws.com/cloudformation-examples/cfn.rb || {
   echo "[ERROR] Can't install Ohai aws cloud formation plugin. "
