@@ -3,7 +3,7 @@
 EXIT_CODE=0
 
 # Install Chef\n",
-curl -L https://www.opscode.com/chef/install.sh | sudo bash || {
+curl -L https://www.opscode.com/chef/install.sh | bash || {
   echo "Can't install Chef Client due to error above. Exiting."
   exit 1
 }
