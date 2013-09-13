@@ -1,5 +1,5 @@
-chef_client_setup Cookbook
-==========================
+linux-server Cookbook
+=====================
 TODO: Enter the cookbook description here.
 
 e.g.
@@ -11,14 +11,14 @@ TODO: List your cookbook requirements. Be sure to include any requirements this 
 
 e.g.
 #### packages
-- `toaster` - chef_client_setup needs toaster to brown your bagel.
+- `toaster` - linux-server needs toaster to brown your bagel.
 
 Attributes
 ----------
 TODO: List you cookbook attributes here.
 
 e.g.
-#### chef_client_setup::default
+#### linux-server::default
 <table>
   <tr>
     <th>Key</th>
@@ -27,7 +27,7 @@ e.g.
     <th>Default</th>
   </tr>
   <tr>
-    <td><tt>['chef_client_setup']['bacon']</tt></td>
+    <td><tt>['linux-server']['bacon']</tt></td>
     <td>Boolean</td>
     <td>whether to include bacon</td>
     <td><tt>true</tt></td>
@@ -36,17 +36,17 @@ e.g.
 
 Usage
 -----
-#### chef_client_setup::default
+#### linux-server::default
 TODO: Write usage instructions for each cookbook.
 
 e.g.
-Just include `chef_client_setup` in your node's `run_list`:
+Just include `linux-server` in your node's `run_list`:
 
 ```json
 {
   "name":"my_node",
   "run_list": [
-    "recipe[chef_client_setup]"
+    "recipe[linux-server]"
   ]
 }
 ```

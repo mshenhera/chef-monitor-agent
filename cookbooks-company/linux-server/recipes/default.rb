@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: chef_client_setup
+# Cookbook Name:: linux-server
 # Recipe:: default
 #
 # Copyright 2013, YOUR_COMPANY_NAME

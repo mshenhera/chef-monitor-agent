@@ -1,11 +1,11 @@
-chef_client_setup CHANGELOG
-===========================
+linux-server CHANGELOG
+======================
 
-This file is used to list changes made in each version of the chef_client_setup cookbook.
+This file is used to list changes made in each version of the linux-server cookbook.
 
 0.1.0
 -----
-- [your_name] - Initial release of chef_client_setup
+- [your_name] - Initial release of linux-server
 
 - - -
 Check the [Markdown Syntax Guide](http://daringfireball.net/projects/markdown/syntax) for help with Markdown.

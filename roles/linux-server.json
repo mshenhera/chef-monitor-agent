@@ -1,0 +1,7 @@
+{
+  "name": "linux-server",
+  "description": "Chef role to deploy linux-server.",
+  "run_list": [
+    "recipe[linux-server::monitor]"
+  ]
+}

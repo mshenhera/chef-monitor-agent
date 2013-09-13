@@ -1,0 +1,315 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Konycloud Server Stack Template.",
+
+    "Parameters": {
+
+        "Environment" : {
+            "Type"          : "String",
+            "Description"   : "Application Environment, for example dev, qa, stage, prod."
+        },
+
+        "DefaultSecurityGroup" : {
+            "Type"        : "String",
+            "Description" : "Additional security group.",
+            "Default"     : "default"
+        },
+
+        "HealthCheckUrl" : {
+            "Type"        : "String",
+            "Description" : "URL path to check web app.",
+            "Default"     : "/"
+        },
+
+        "AppPort" : {
+            "Description" : "The TCP port for the Web Server",
+            "Type"        : "String",
+            "Default"     : "80"
+        },
+
+        "KeyName": {
+            "Type"        : "String",
+            "Description" : "Name of an existing EC2 Key Pair to enable SSH access to the server",
+            "Default"     : "test-devops-linux"
+        },
+
+        "InstanceType": {
+            "Description"   : "Application Server EC2 instance type",
+            "Type"          : "String",
+            "Default"       : "t1.micro",
+            "AllowedValues" : [
+                "t1.micro",
+                "m1.small",
+                "m1.medium",
+                "m1.large",
+                "m1.xlarge",
+                "m2.xlarge",
+                "m2.2xlarge",
+                "m2.4xlarge",
+                "c1.medium",
+                "c1.xlarge",
+                "cc1.4xlarge",
+                "cc2.8xlarge",
+                "cg1.4xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type."
+        },
+
+        "ServerRole": {
+            "Description" : "The Chef role.",
+            "Type"        : "String",
+            "Default"     : "linux-server"
+        },
+
+        "ChefKeysBucket"  : {
+            "Description" : "S3 bucket containing validation private key for Chef Server",
+            "Type"        : "String",
+            "Default"     : "opscode-chef"
+        },
+
+        "ChefOrganization" : {
+            "Description" : "Chef organization.",
+            "Type"        : "String"
+        }
+    },
+
+    "Mappings": {
+        "AWSInstanceType2Arch" : {
+            "t1.micro"    : { "Arch" : "64" },
+            "m1.small"    : { "Arch" : "64" },
+            "m1.medium"   : { "Arch" : "64" },
+            "m1.large"    : { "Arch" : "64" },
+            "m1.xlarge"   : { "Arch" : "64" },
+            "m2.xlarge"   : { "Arch" : "64" },
+            "m2.2xlarge"  : { "Arch" : "64" },
+            "m2.4xlarge"  : { "Arch" : "64" },
+            "c1.medium"   : { "Arch" : "64" },
+            "c1.xlarge"   : { "Arch" : "64" }
+        },
+
+        "AWSRegionArch2AMI" : {
+            "us-east-1" :      { "64" : "ami-79c0ae10" },
+            "us-west-1" :      { "64" : "ami-69b59a2c" },
+            "us-west-2" :      { "64" : "ami-773caa47" },
+            "eu-west-1" :      { "64" : "ami-7b62730f" },
+            "sa-east-1"      : { "64" : "ami-0c76ac11" },
+            "ap-southeast-1" : { "64" : "ami-e40846b6" },
+            "ap-northeast-1" : { "64" : "ami-7d43cd7c" }
+        }
+    },
+
+    "Resources": {
+
+        "InstallUser" : {
+            "Type" : "AWS::IAM::User",
+            "Properties" : {
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "root",
+                    "PolicyDocument": { "Statement":[{
+                        "Effect":"Allow",
+                        "Action": [
+                            "cloudformation:DescribeStackResource",
+                            "s3:Get",
+                            "ec2:AssociateAddress",
+                            "ec2:DescribeAddresses",
+                            "ec2:DescribeVolumes",
+                            "ec2:AttachVolume"
+                        ],
+                        "Resource":"*"
+                    }, {
+                        "Effect": "Allow",
+                        "Action": [
+                            "s3:Get*",
+                            "s3:List*"
+                        ],
+                        "Resource": [
+                            "arn:aws:s3:::build.storage",
+                            "arn:aws:s3:::build.storage/*",
+                            "arn:aws:s3:::kony-repo/*",
+                            {"Fn::Join": ["", [ "arn:aws:s3:::", { "Ref": "ChefKeysBucket" }, "/*"]]}
+                        ]
+                    }]}
+                }]
+            }
+        },
+
+        "IamRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [ 
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [ "ec2.amazonaws.com" ]
+                        },
+                        "Action": [ "sts:AssumeRole" ]
+                    } ]
+                },
+                "Policies": [ 
+                {
+                    "PolicyName": "root",
+                    "PolicyDocument": {
+                        "Statement":[{
+                            "Effect":"Allow",
+                            "Action": [
+                                "cloudformation:DescribeStackResource"
+                            ],
+                            "Resource":"*"
+                        }, {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Resource": [
+                                {"Fn::Join": ["", [ "arn:aws:s3:::", { "Ref": "ChefKeysBucket" }, "/*"]]}
+                            ]
+                        }]
+                    }
+                } ],
+                "Path": "/"
+            }
+        },
+        
+        "IamInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [ { "Ref": "IamRole" } ]
+            }
+        },
+        
+        "ServerGroup": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "Properties": {
+                "AvailabilityZones"       : {"Fn::GetAZs": ""},
+                "LaunchConfigurationName" : {"Ref": "Ec2Node"},
+                "MinSize"                 : "1",
+                "MaxSize"                 : "1",
+                "HealthCheckType"         : "EC2",
+                "Tags" : [{
+                    "Key"   : "Name",
+                    "Value" : { "Fn::Join" : ["-", [ { "Ref": "ServerRole" }, { "Ref": "Environment" }]]},
+                    "PropagateAtLaunch": "true"
+                }]
+            }
+        },
+
+        "Ec2Node": {
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "Metadata": {
+                "AWS::CloudFormation::Init" : {
+                    "config": {
+                        "files" : {
+                            "/etc/chef/validation.pem" : {
+                                "source" : { "Fn::Join" : ["", [
+                                    "https://s3.amazonaws.com/",
+                                    { "Ref": "ChefKeysBucket" }, "/",
+                                    { "Ref": "ChefOrganization" }, "/",
+                                    { "Ref": "ChefOrganization" }, "-validator.pem"]]
+                                },
+                                "authentication" : "rolebased"
+                            },
+                            "/etc/chef/first-boot.json" : {
+                                "content": { "Fn::Join" : ["", [
+                                    "{ \"run_list\": ",
+                                    "\"role[", { "Ref": "ServerRole" }, "]\"", "}"]]
+                                }
+                            },
+                            "/etc/chef/client.rb" : {
+                                "content": { "Fn::Join" : ["", [
+                                    "log_level :info\n",
+                                    "log_location STDOUT\n",
+                                    "chef_server_url \"https://api.opscode.com/organizations/", { "Ref": "ChefOrganization" }, "\"\n",
+                                    "validation_client_name \"", { "Ref": "ChefOrganization" }, "-validator\"\n"]]
+                                }
+                            }
+                        }
+                    }
+                },
+                "AWS::CloudFormation::Authentication": {
+                    "rolebased" : {
+                        "type": "s3",
+                        "buckets": [ { "Ref": "ChefKeysBucket" } ],
+                        "roleName": { "Ref": "IamRole" }
+                    }
+                }
+            },
+            "Properties": {
+                "SecurityGroups": [ { "Ref": "ServerSecurityGroup" }, { "Ref": "DefaultSecurityGroup" } ],
+                "IamInstanceProfile": { "Ref": "IamInstanceProfile" },
+                "ImageId": { "Fn::FindInMap": [ "AWSRegionArch2AMI", { "Ref": "AWS::Region" }, { "Fn::FindInMap": [ "AWSInstanceType2Arch", { "Ref": "InstanceType" }, "Arch" ] } ]
+                },
+                "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                    "#!/bin/bash -v\n",
+                    "EXIT_CODE=0\n",
+
+                    "# Install Chef\n",
+                    " curl -L https://raw.github.com/mshenhera/ChefSolo/master/scripts/aws-bootstrap.sh | sudo bash || {\n",
+                    "   echo \"Can't install setup Chef Client due to error above. Exiting.\" > /var/log/bootstrap.log 2>&1\n",
+                    "   exit 1\n",
+                    "}\n",
+
+                    "# Start Cloud-Init\n",
+                    "/usr/local/bin/cfn-init --region ", { "Ref" : "AWS::Region" },
+                    "    --stack ", { "Ref" : "AWS::StackName" },
+                    "    --resource Ec2Node >> /var/log/bootstrap.log 2>&1 || {\n",
+                    "    echo \"Exiting die to error above.\" >> /var/log/bootstrap.log 2>&1\n",
+                    "    exit 1\n",
+                    "}\n",
+
+                    "# Setup server using Chef\n",
+                    "chef-client -j /etc/chef/first-boot.json >> /var/log/bootstrap.log 2>&1 || {\n",
+                    "    echo \"Failed to initialize host via chef client\" >> /var/log/bootstrap.log 2>&1\n",
+                    "    EXIT_CODE=1\n",
+                    "}\n",
+
+                    "# Send signal about finishing configuring server\n",
+                    "cfn-signal -e $EXIT_CODE -r 'Server configuration' '", { "Ref" : "ClientWaitHandle" }, "'\n"
+                ]]}},
+                "KeyName": { "Ref": "KeyName" },
+                "InstanceType": { "Ref": "InstanceType" }
+            }
+        },
+
+        "ServerSecurityGroup": {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "Open up SSH and App ports.",
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort"   : "22",
+                        "ToPort"     : "22",
+                        "CidrIp"     : "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort"   : { "Ref" : "AppPort" },
+                        "ToPort"     : { "Ref" : "AppPort" },
+                        "SourceSecurityGroupName" : "default"
+                    }
+                ]
+            }
+        },
+
+        "ClientWaitHandle" : {
+            "Type" : "AWS::CloudFormation::WaitConditionHandle"
+        },
+
+        "ClientWaitCondition" : {
+            "Type" : "AWS::CloudFormation::WaitCondition",
+            "DependsOn" : "ServerGroup",
+            "Properties" : {
+                "Handle"  : { "Ref" : "ClientWaitHandle" },
+                "Timeout" : "1800"
+            }
+        }
+    },
+
+    "Outputs": {
+    }
+}
+
