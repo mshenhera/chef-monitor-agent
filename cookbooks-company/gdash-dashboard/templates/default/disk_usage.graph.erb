@@ -1,0 +1,20 @@
+title       "Disk Usage"
+area        :first
+description "Disk usage"
+hide_legend false
+ymin 0
+yminright 0
+
+field :total, :color => "green",
+               :alias => "Disk used",
+               :data  => "<%= @hostname %>.disk_usage.root.used"
+
+field :used, :color => "red",
+               :alias => "Total",
+               :data  => "sumSeries(<%= @hostname %>.disk_usage.root.avail,<%= @hostname %>.disk_usage.root.used)"
+
+field :usage, :color => "blue",
+              :alias => "Disk usage in %",
+              :data => "<%= @hostname %>.disk_usage.root.used_percentage",
+              :second_y_axis => true
+              

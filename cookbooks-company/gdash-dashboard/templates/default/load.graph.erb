@@ -1,0 +1,16 @@
+title       "Load"
+area        :none
+description "Load average for my node"
+hide_legend false
+
+field :short, :color => "red",
+               :alias => "Short term (1 minute)",
+               :data  => "<%= @hostname %>.load_avg.one"
+
+field :mid, :color => "orange",
+               :alias => "Mid term (5 minutes)",
+               :data  => "<%= @hostname %>.load_avg.five"
+
+field :long, :color => "yellow",
+             :alias => "Long term (15 minutes)",
+             :data  => "<%= @hostname %>.load_avg.fifteen"

@@ -1,0 +1,20 @@
+title       "CPU Usage"
+area        :none
+description "The combined CPU usage for my node"
+hide_legend false
+
+field :short, :color => "yellow",
+               :alias => "IO Wait",
+               :data  => "<%= @hostname %>.cpu.iowait"
+
+field :mid, :color => "blue",
+               :alias => "System",
+               :data  => "<%= @hostname %>.cpu.system"
+
+field :long, :color => "green",
+             :alias => "User",
+             :data  => "<%= @hostname %>.cpu.user"
+
+field :lon, :color => "red",
+             :alias => "Usage",
+             :data  => "<%= @hostname %>.cpu.usage"

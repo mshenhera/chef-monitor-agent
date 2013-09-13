@@ -1,0 +1,7 @@
+{
+  "name": "dashboard",
+  "description": "Chef role to deploy gdash dashboards.",
+  "run_list": [
+    "recipe[gdash-dashboard::dashboard]"
+  ]
+}

@@ -1,0 +1,16 @@
+title       "Memory"
+area        :none
+description "Memory usage"
+hide_legend false
+
+field :short, :color => "red",
+               :alias => "Memory Total",
+               :data  => "<%= @hostname %>.memory.total"
+
+field :mid, :color => "green",
+               :alias => "Memory Used",
+               :data  => "<%= @hostname %>.memory.used"
+
+field :long, :color => "yellow",
+             :alias => "Memory Free",
+             :data  => "<%= @hostname %>.memory.free"

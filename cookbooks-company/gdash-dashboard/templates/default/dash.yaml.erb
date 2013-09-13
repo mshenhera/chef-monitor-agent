@@ -1,0 +1,17 @@
+:name: <%= @server %>
+:description: system metrics
+:options:
+    :interval_filters:
+        - :label: Last Hour
+          :from: -1h
+          :to: now
+        - :label: Last Day
+          :from: -1day
+        - :label: Current Week
+          :from: monday
+          :to: now
+    :intervals:
+    - [ "-1hour", "1 hour" ]
+    - [ "-2hour", "2 hour" ]
+    - [ "-1day", "1 day" ]
+    - [ "-1month", "1 month" ]

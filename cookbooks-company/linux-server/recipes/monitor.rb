@@ -51,6 +51,14 @@ sensu_check 'metrics_cpu' do
   standalone true
 end
 
+sensu_check 'metrics_cpu_usage' do
+  type 'metric'
+  command '/etc/sensu/sensu-community-plugins/plugins/system/cpu-usage-metrics.sh'
+  handlers ['graphite']
+  interval 30
+  standalone true
+end
+
 sensu_check 'metrics_interface' do
   type 'metric'
   command '/etc/sensu/sensu-community-plugins/plugins/system/interface-metrics.rb'
